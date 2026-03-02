@@ -26,9 +26,11 @@ export const DEFAULT_PROVIDERS: ModelProvider[] = [
   },
   {
     id: "qwen",
-    name: "通义千问 / Qwen",
+    name: "通义千问",
     baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
     models: [
+      { id: "qwen3.5-plus", name: "Qwen3.5 Plus" },
+      { id: "qwen3-235b-a22b", name: "Qwen3 235B" },
       { id: "qwen-plus", name: "Qwen Plus" },
       { id: "qwen-turbo", name: "Qwen Turbo" },
     ],
@@ -38,11 +40,11 @@ export const DEFAULT_PROVIDERS: ModelProvider[] = [
     name: "OpenRouter",
     baseUrl: "https://openrouter.ai/api/v1",
     models: [
-      { id: "anthropic/claude-sonnet-4", name: "Claude Sonnet 4" },
+      { id: "anthropic/claude-sonnet-4-5-20250929", name: "Claude Sonnet 4.5" },
       { id: "openai/gpt-4o", name: "GPT-4o" },
     ],
   },
 ];
 
-/** @deprecated 使用 DEFAULT_PROVIDERS 代替 */
+/** @deprecated 使用 DEFAULT_PROVIDERS 代替，保持向后兼容 */
 export const MODEL_PROVIDERS = DEFAULT_PROVIDERS;

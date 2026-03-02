@@ -3,7 +3,7 @@ import { getAllSkillsWithUser } from "@/skills/registry";
 
 export async function POST(req: Request) {
   try {
-    const { skillName, params, providerId = "", modelId = "" } = await req.json();
+    const { skillName, params, providerId = "openai", modelId = "gpt-4o" } = await req.json();
     const skills = await getAllSkillsWithUser(providerId, modelId);
     const skill = skills.find((s) => s.name === skillName);
     if (!skill) {

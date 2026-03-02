@@ -103,8 +103,8 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       settings: {
-        providerId: "",
-        modelId: "",
+        providerId: "openai",
+        modelId: "gpt-4o",
         disabledSkills: [],
         theme: "space-black",
         dialectId: "mandarin",

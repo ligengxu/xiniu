@@ -115,8 +115,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const {
       messages: uiMessages,
-      providerId = "",
-      modelId = "",
+      providerId = "openai",
+      modelId = "gpt-4o",
       apiKey: clientApiKey,
       baseUrl: clientBaseUrl,
     } = body;

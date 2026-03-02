@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import path from "path";
 
-const GITHUB_RAW = "https://raw.githubusercontent.com/ligengxu/xiniu/community-skills/src/skills/community";
+const GITHUB_RAW = process.env.XINIU_SKILL_SOURCE
+  || "https://raw.githubusercontent.com/ligengxu/xiniu/community-skills/src/skills/community";
 
 function isChina(): boolean {
   const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;

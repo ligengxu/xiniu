@@ -1,15 +1,13 @@
 import { createOpenAI } from "@ai-sdk/openai";
-import { DEFAULT_PROVIDERS } from "./model-providers";
 export { DEFAULT_PROVIDERS, MODEL_PROVIDERS } from "./model-providers";
 export type { ModelProvider } from "./model-providers";
 
-function buildProviderBaseUrls(): Record<string, string> {
-  const map: Record<string, string> = {};
-  for (const p of DEFAULT_PROVIDERS) {
-    map[p.id] = p.baseUrl;
-  }
-  return map;
-}
+const WELL_KNOWN_URLS: Record<string, string> = {
+  openai: "https://api.openai.com/v1",
+  deepseek: "https://api.deepseek.com/v1",
+  qwen: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+  openrouter: "https://openrouter.ai/api/v1",
+};
 
 const PROVIDER_ENV_KEYS: Record<string, string> = {
   openai: "OPENAI_API_KEY",
@@ -39,18 +37,18 @@ export function getModel(
   clientApiKey?: string,
   clientBaseUrl?: string
 ) {
-  const providerUrls = buildProviderBaseUrls();
-  const baseURL = clientBaseUrl || providerUrls[providerId];
-  const envKey = PROVIDER_ENV_KEYS[providerId];
+  const baseURL =
+    clientBaseUrl || WELL_KNOWN_URLS[providerId];
+  const envKey = PROVIDER_ENV_KEYS[providerId] || `${providerId.toUpperCase()}_API_KEY`;
   const apiKey =
-    clientApiKey || (envKey ? process.env[envKey] : undefined);
+    clientApiKey || process.env[envKey];
 
   if (!baseURL) {
-    throw new Error(`未知的模型提供商: ${providerId}，请在设置页面添加自定义供应商并配置 Base URL`);
+    throw new Error(`未知的模型提供商: ${providerId}，请在设置页面配置 Base URL`);
   }
   if (!apiKey) {
     throw new Error(
-      `缺少 API Key: 请在设置页面配置「${providerId}」的 API Key，或在 .env.local 中设置 ${envKey || providerId.toUpperCase() + "_API_KEY"}`
+      `缺少 API Key: 请在设置页面配置「${providerId}」的 API Key，或在 .env.local 中设置 ${envKey}`
     );
   }
 

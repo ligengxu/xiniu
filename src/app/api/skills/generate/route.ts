@@ -67,7 +67,7 @@ ${toolListStr}
 
 export async function POST(req: Request) {
   try {
-    const { description, providerId = "", modelId = "", apiKey: clientApiKey, baseUrl: clientBaseUrl } = await req.json();
+    const { description, providerId = "openai", modelId = "gpt-4o", apiKey: clientApiKey, baseUrl: clientBaseUrl } = await req.json();
 
     if (!description || typeof description !== "string") {
       return NextResponse.json(
