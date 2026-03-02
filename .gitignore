@@ -71,3 +71,8 @@ scripts/kill-process.ps1
 
 # Package lock (regenerate on install)
 package-lock.json
+
+# Test & dev scripts
+_test_*.js
+scripts/
+snake-page-load
