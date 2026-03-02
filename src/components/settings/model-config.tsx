@@ -85,7 +85,7 @@ export function ModelConfig() {
           }}
           onCancel={() => setEditingId(null)}
           onDelete={
-            !currentProvider.isBuiltin
+            providers.length > 1
               ? () => {
                   deleteProvider(currentProvider.id);
                   setEditingId(null);

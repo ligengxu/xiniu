@@ -179,14 +179,22 @@ export const useAppStore = create<AppState>()(
         const configs = state.providerConfigs;
         const builtinIds = new Set(DEFAULT_PROVIDERS.map((p) => p.id));
         const existingIds = new Set(configs.map((c) => c.id));
-        const merged = [...configs];
+
+        const cleaned = configs.filter((c) => {
+          if (builtinIds.has(c.id)) return true;
+          if (c.apiKey || c.baseUrl !== DEFAULT_PROVIDERS.find((d) => d.id === c.id)?.baseUrl) return true;
+          if (!builtinIds.has(c.id)) return true;
+          return false;
+        });
+
+        const merged = [...cleaned];
         for (const dp of DEFAULT_PROVIDERS) {
           if (!existingIds.has(dp.id)) {
             merged.push({ ...dp, apiKey: "", isBuiltin: true });
           }
         }
         return merged.map((c) =>
-          builtinIds.has(c.id) ? { ...c, isBuiltin: true } : c
+          builtinIds.has(c.id) ? { ...c, isBuiltin: true } : { ...c, isBuiltin: false }
         );
       },
 
@@ -210,11 +218,11 @@ export const useAppStore = create<AppState>()(
 
       deleteProvider: (id) =>
         set((state) => {
-          const target = state.providerConfigs.find((c) => c.id === id);
-          if (target?.isBuiltin) return state;
+          if (state.providerConfigs.length <= 1) return state;
           const filtered = state.providerConfigs.filter((c) => c.id !== id);
+          if (filtered.length === 0) return state;
           const settingsUpdate: Partial<Settings> = {};
-          if (state.settings.providerId === id && filtered.length > 0) {
+          if (state.settings.providerId === id) {
             settingsUpdate.providerId = filtered[0].id;
             settingsUpdate.modelId = filtered[0].models[0]?.id || "";
           }
