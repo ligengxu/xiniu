@@ -1,36 +1,90 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 犀牛 Agent
 
-## Getting Started
+全栈 AI Agent 平台，内置 20+ 核心技能，商店提供 76+ 社区技能按需安装。
 
-First, run the development server:
+## 一句话安装
+
+自动检测系统环境（Git/Node.js），国内用户自动切换加速镜像，缺少依赖交互式引导安装。
+
+**Linux / macOS：**
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+curl -fsSL https://raw.githubusercontent.com/ligengxu/xiniu/main/install.sh | bash
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+**Windows（PowerShell 管理员）：**
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```powershell
+irm https://raw.githubusercontent.com/ligengxu/xiniu/main/install.ps1 | iex
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**自定义安装目录：**
 
-## Learn More
+```bash
+XINIU_DIR=/opt/xiniu curl -fsSL https://raw.githubusercontent.com/ligengxu/xiniu/main/install.sh | bash
+```
 
-To learn more about Next.js, take a look at the following resources:
+```powershell
+$env:XINIU_DIR="D:\xiniu"; irm https://raw.githubusercontent.com/ligengxu/xiniu/main/install.ps1 | iex
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 安装脚本做了什么
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+1. 检测区域 → 国内自动用 ghproxy/npmmirror 镜像
+2. 检测 Git   → 缺失则通过 apt/yum/brew/winget/scoop 自动安装
+3. 检测 Node  → 缺失则提供 nvm / MSI / 包管理器 三种安装方式
+4. 配置 npm   → 国内用户提示切换淘宝镜像
+5. 克隆项目   → 国内依次尝试多个 GitHub 加速镜像
+6. 安装依赖   → npm install (自动使用对应镜像源)
+7. 生成配置   → 创建 .env.local 模板
+8. 启动询问   → 可选立即启动开发服务器
+```
 
-## Deploy on Vercel
+## 手动安装
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+git clone https://github.com/ligengxu/xiniu.git
+cd xiniu
+npm install
+cp .env.example .env.local   # 编辑填入 API Key
+npm run dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 技能商店
+
+启动后访问 `http://localhost:3000/skills` → 「商店」标签页：
+
+- 76 个社区技能一键安装，自动下载依赖
+- 国内用户自动使用 npmmirror 镜像
+- 支持单个安装 / 全部安装 / 卸载
+- 技能分类：办公、开发、生活、创意
+
+## 技术栈
+
+- **框架**: Next.js 16 + React 19
+- **语言**: TypeScript 5
+- **样式**: Tailwind CSS 4
+- **AI SDK**: Vercel AI SDK + OpenAI/Anthropic/DashScope
+- **运行时**: Node.js 18+
+
+## 项目结构
+
+```
+src/
+├── app/              # Next.js 页面和 API
+├── components/       # React 组件
+├── lib/              # 工具函数
+└── skills/
+    ├── *.ts          # 核心技能 (~20个，内置)
+    ├── community/    # 社区技能 (按需安装)
+    │   ├── skills-manifest.json  # 技能清单
+    │   └── {skill-name}/index.ts
+    ├── registry.ts   # 技能注册中心
+    ├── prompt-modules.ts
+    └── types.ts
+```
+
+## License
+
+MIT
