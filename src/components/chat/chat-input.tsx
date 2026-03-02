@@ -4,12 +4,16 @@ import { Send, Square, Mic, MicOff, Zap, Settings2, Rocket, ImagePlus, X } from 
 import { useRef, useEffect, useState, useCallback } from "react";
 import { useAppStore } from "@/lib/store";
 import { getDialectById } from "@/lib/speech";
+import { useI18n } from "@/lib/i18n";
 
-const COMPLEXITY_OPTIONS = [
-  { id: "simple" as const, label: "简单", icon: Zap, desc: "快速出活，基础功能，最少测试" },
-  { id: "medium" as const, label: "中等", icon: Settings2, desc: "默认，功能完整，标准测试" },
-  { id: "complex" as const, label: "复杂", icon: Rocket, desc: "大厂标准，精致UI/音效/动画/响应式，生产级测试" },
-];
+function useComplexityOptions() {
+  const { t } = useI18n();
+  return [
+    { id: "simple" as const, label: t.chat.simple, icon: Zap },
+    { id: "medium" as const, label: t.chat.medium, icon: Settings2 },
+    { id: "complex" as const, label: t.chat.complex, icon: Rocket },
+  ];
+}
 
 interface AttachedImage {
   file: File;
@@ -46,6 +50,8 @@ export function ChatInput({
     }
   }, [input]);
 
+  const { t } = useI18n();
+  const COMPLEXITY_OPTIONS = useComplexityOptions();
   const complexity = useAppStore((s) => s.settings.codeComplexity) || "medium";
   const dialectId = useAppStore((s) => s.settings.dialectId);
   const setSettings = useAppStore((s) => s.setSettings);
@@ -167,7 +173,7 @@ export function ChatInput({
       />
       <div className="max-w-3xl mx-auto mb-2 flex items-center gap-1">
         <span className="text-[10px] mr-1 shrink-0" style={{ color: "var(--text-muted)" }}>
-          代码质量
+          {t.chat.codeQuality}
         </span>
         {COMPLEXITY_OPTIONS.map((opt) => {
           const active = complexity === opt.id;
@@ -240,7 +246,7 @@ export function ChatInput({
             background: "var(--surface-elevated)",
             color: "var(--text-muted)",
           }}
-          title="上传图片（支持拖拽）"
+          title={t.chat.uploadImage}
         >
           <ImagePlus className="h-4 w-4" />
         </button>
@@ -251,7 +257,7 @@ export function ChatInput({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="输入你的指令... (Shift+Enter 换行，可拖拽图片)"
+            placeholder={t.chat.inputPlaceholder}
             rows={1}
             className="w-full resize-none rounded-2xl border px-4 py-3 pr-12 text-sm transition-all focus:outline-none focus:ring-1"
             style={{
@@ -272,7 +278,7 @@ export function ChatInput({
             background: isListening ? "var(--error)" : "var(--surface-elevated)",
             color: isListening ? "#fff" : "var(--text-muted)",
           }}
-          title={isListening ? "停止语音输入" : "语音输入"}
+          title={isListening ? t.chat.stopReading : t.chat.voiceInput}
         >
           {isListening ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
         </button>

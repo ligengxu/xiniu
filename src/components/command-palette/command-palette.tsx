@@ -16,6 +16,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { searchCommands, recordCommandUsage, registerCommands, type Command } from "@/lib/commands";
+import { useI18n } from "@/lib/i18n";
 
 interface CommandPaletteProps {
   onNewChat: () => void;
@@ -39,6 +40,7 @@ const ICON_MAP: Record<string, React.ComponentType<{ className?: string; style?:
 };
 
 export function CommandPalette({ onNewChat, onOpenSettings, onChangeTheme }: CommandPaletteProps) {
+  const { t, locale } = useI18n();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -46,20 +48,21 @@ export function CommandPalette({ onNewChat, onOpenSettings, onChangeTheme }: Com
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const isEn = locale === "en";
     registerCommands([
-      { id: "new-chat", name: "新建对话", description: "开始一个新的对话", icon: "MessageSquare", category: "action", action: onNewChat, keywords: ["新对话", "new", "chat"] },
-      { id: "settings", name: "打开设置", description: "进入设置页面", icon: "Settings", category: "navigation", action: onOpenSettings, keywords: ["设置", "settings", "配置"] },
-      { id: "theme", name: "切换主题", description: "更换界面主题外观", icon: "Palette", category: "setting", action: onChangeTheme, keywords: ["主题", "theme", "外观", "颜色"] },
-      { id: "model", name: "切换模型", description: "更换 AI 模型", icon: "Cpu", category: "setting", action: onOpenSettings, keywords: ["模型", "model", "AI"] },
-      { id: "sk-folder", name: "创建文件夹", description: "在指定路径创建新文件夹", icon: "FolderPlus", category: "skill", action: () => {}, keywords: ["文件夹", "目录"] },
-      { id: "sk-txt", name: "创建文本文件", description: "创建 TXT 文本文件", icon: "FileText", category: "skill", action: () => {}, keywords: ["文本", "txt", "笔记"] },
-      { id: "sk-browse", name: "浏览网页", description: "抓取并提取网页内容", icon: "Globe", category: "skill", action: () => {}, keywords: ["网页", "浏览", "抓取"] },
-      { id: "sk-summarize", name: "总结网页", description: "AI 总结网页核心内容", icon: "BookOpen", category: "skill", action: () => {}, keywords: ["总结", "摘要", "概括"] },
-      { id: "sk-img", name: "下载网页图片", description: "下载网页上的所有图片", icon: "ImageDown", category: "skill", action: () => {}, keywords: ["图片", "下载", "image"] },
-      { id: "sk-file", name: "下载文件", description: "从 URL 下载文件到本地", icon: "Download", category: "skill", action: () => {}, keywords: ["下载", "文件", "download"] },
-      { id: "sk-open", name: "打开网页", description: "在浏览器中打开网页", icon: "ExternalLink", category: "skill", action: () => {}, keywords: ["打开", "网页", "open"] },
+      { id: "new-chat", name: t.commands.newChat, description: isEn ? "Start a new conversation" : "开始一个新的对话", icon: "MessageSquare", category: "action", action: onNewChat, keywords: ["新对话", "new", "chat"] },
+      { id: "settings", name: t.commands.settings, description: isEn ? "Open settings page" : "进入设置页面", icon: "Settings", category: "navigation", action: onOpenSettings, keywords: ["设置", "settings"] },
+      { id: "theme", name: t.commands.theme, description: isEn ? "Change theme" : "更换界面主题外观", icon: "Palette", category: "setting", action: onChangeTheme, keywords: ["theme", "主题"] },
+      { id: "model", name: isEn ? "Switch Model" : "切换模型", description: isEn ? "Change AI model" : "更换 AI 模型", icon: "Cpu", category: "setting", action: onOpenSettings, keywords: ["model", "模型"] },
+      { id: "sk-folder", name: t.commands.createFolder, description: isEn ? "Create a new folder" : "创建新文件夹", icon: "FolderPlus", category: "skill", action: () => {}, keywords: ["folder", "文件夹"] },
+      { id: "sk-txt", name: t.commands.createTxt, description: isEn ? "Create a text file" : "创建 TXT 文本文件", icon: "FileText", category: "skill", action: () => {}, keywords: ["text", "txt"] },
+      { id: "sk-browse", name: t.commands.openWebpage, description: isEn ? "Fetch & extract webpage content" : "抓取并提取网页内容", icon: "Globe", category: "skill", action: () => {}, keywords: ["browse", "网页"] },
+      { id: "sk-summarize", name: isEn ? "Summarize Page" : "总结网页", description: isEn ? "AI summarize webpage" : "AI 总结网页核心内容", icon: "BookOpen", category: "skill", action: () => {}, keywords: ["summarize", "总结"] },
+      { id: "sk-img", name: isEn ? "Download Images" : "下载网页图片", description: isEn ? "Download all images from a webpage" : "下载网页图片", icon: "ImageDown", category: "skill", action: () => {}, keywords: ["image", "图片"] },
+      { id: "sk-file", name: isEn ? "Download File" : "下载文件", description: isEn ? "Download file from URL" : "从 URL 下载文件", icon: "Download", category: "skill", action: () => {}, keywords: ["download", "下载"] },
+      { id: "sk-open", name: t.commands.openWebpage, description: isEn ? "Open in browser" : "在浏览器中打开网页", icon: "ExternalLink", category: "skill", action: () => {}, keywords: ["open", "打开"] },
     ]);
-  }, [onNewChat, onOpenSettings, onChangeTheme]);
+  }, [onNewChat, onOpenSettings, onChangeTheme, locale, t]);
 
   const results = searchCommands(query);
 
@@ -115,11 +118,12 @@ export function CommandPalette({ onNewChat, onOpenSettings, onChangeTheme }: Com
 
   if (!open) return null;
 
+  const isEn = locale === "en";
   const categoryLabels: Record<string, string> = {
-    action: "操作",
-    navigation: "导航",
-    setting: "设置",
-    skill: "技能",
+    action: isEn ? "Action" : "操作",
+    navigation: isEn ? "Nav" : "导航",
+    setting: isEn ? "Setting" : "设置",
+    skill: isEn ? "Skill" : "技能",
   };
 
   return (
@@ -142,7 +146,7 @@ export function CommandPalette({ onNewChat, onOpenSettings, onChangeTheme }: Com
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleListKeyDown}
-            placeholder="输入命令或搜索..."
+            placeholder={t.commands.placeholder}
             className="flex-1 bg-transparent text-sm outline-none placeholder:opacity-50"
             style={{ color: "var(--text-primary)" }}
           />
@@ -154,7 +158,7 @@ export function CommandPalette({ onNewChat, onOpenSettings, onChangeTheme }: Com
         <div ref={listRef} className="max-h-[300px] overflow-y-auto py-2">
           {results.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm" style={{ color: "var(--text-muted)" }}>
-              未找到匹配的命令
+              {isEn ? "No matching commands" : "未找到匹配的命令"}
             </div>
           ) : (
             results.map((cmd, i) => {
@@ -186,8 +190,8 @@ export function CommandPalette({ onNewChat, onOpenSettings, onChangeTheme }: Com
         </div>
 
         <div className="flex items-center justify-between px-4 py-2 border-t text-[10px]" style={{ borderColor: "var(--border)", color: "var(--text-muted)" }}>
-          <span>↑↓ 导航 · Enter 执行 · Esc 关闭</span>
-          <span>Ctrl+K 唤起</span>
+          <span>{isEn ? "↑↓ Navigate · Enter Execute · Esc Close" : "↑↓ 导航 · Enter 执行 · Esc 关闭"}</span>
+          <span>Ctrl+K</span>
         </div>
       </div>
     </div>

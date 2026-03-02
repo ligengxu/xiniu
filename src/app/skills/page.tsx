@@ -10,6 +10,7 @@ import { SkillEditor } from "@/components/skills/skill-editor";
 import { SkillStoreList } from "@/components/skills/skill-store-list";
 import { SkillSetupGuide } from "@/components/skills/skill-setup-guide";
 import type { SkillConfig } from "@/skills/schema";
+import { useI18n } from "@/lib/i18n";
 
 interface SetupGuideData {
   framework: string;
@@ -38,6 +39,7 @@ type TabId = "installed" | "store" | "create";
 
 export default function SkillsPage() {
   const { settings } = useAppStore();
+  const { t, fmt } = useI18n();
   const [tab, setTab] = useState<TabId>("installed");
   const [skills, setSkills] = useState<SkillMeta[]>([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +93,7 @@ export default function SkillsPage() {
   }
 
   async function handleDelete(name: string) {
-    if (!confirm(`确定要删除技能 "${name}" 吗？`)) return;
+    if (!confirm(fmt(t.skills.uninstallConfirm, { name }))) return;
     try {
       const res = await fetch(`/api/skills/manage?name=${encodeURIComponent(name)}`, {
         method: "DELETE",
@@ -145,12 +147,12 @@ export default function SkillsPage() {
         const data = await res.json();
         if (data.success) {
           await fetchSkills();
-          alert("导入成功！");
+          alert(t.common.success);
         } else {
-          alert(`导入失败: ${data.message || data.errors?.join(", ")}`);
+          alert(`${t.common.error}: ${data.message || data.errors?.join(", ")}`);
         }
       } catch (err) {
-        alert(`导入失败: ${err instanceof Error ? err.message : String(err)}`);
+        alert(`${t.common.error}: ${err instanceof Error ? err.message : String(err)}`);
       } finally {
         setImporting(false);
       }
@@ -203,9 +205,9 @@ export default function SkillsPage() {
   const userCount = skills.filter((s) => s.source === "user").length;
 
   const TABS: { id: TabId; label: string; icon: typeof Package }[] = [
-    { id: "installed", label: "已安装", icon: Package },
-    { id: "store", label: "技能商店", icon: Store },
-    { id: "create", label: "创建技能", icon: PenTool },
+    { id: "installed", label: t.skills.installed, icon: Package },
+    { id: "store", label: t.skills.store, icon: Store },
+    { id: "create", label: t.skills.create, icon: PenTool },
   ];
 
   return (
@@ -228,10 +230,10 @@ export default function SkillsPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <h1 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>
-              技能管理
+              {t.skills.title}
             </h1>
             <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: "var(--surface-elevated)", color: "var(--text-muted)" }}>
-              {skills.length} 个技能
+              {fmt(t.skills.skillCount, { n: skills.length })}
             </span>
 
             <div className="ml-auto flex items-center gap-2">
@@ -242,7 +244,7 @@ export default function SkillsPage() {
                 style={{ borderColor: "var(--border)", color: "var(--text-secondary)" }}
               >
                 {importing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Upload className="h-3 w-3" />}
-                导入 JSON
+                {t.common.import} JSON
               </button>
             </div>
           </div>
@@ -283,7 +285,7 @@ export default function SkillsPage() {
                     color: filter === f ? "var(--text-primary)" : "var(--text-muted)",
                   }}
                 >
-                  {f === "all" ? `全部 (${skills.length})` : f === "builtin" ? `内置 (${builtinCount})` : `自定义 (${userCount})`}
+                  {f === "all" ? `${t.common.all} (${skills.length})` : f === "builtin" ? `${t.skills.builtIn} (${builtinCount})` : `${t.skills.custom} (${userCount})`}
                 </button>
               ))}
             </div>
@@ -311,7 +313,7 @@ export default function SkillsPage() {
             {!loading && filteredSkills.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-sm" style={{ color: "var(--text-muted)" }}>
-                  {filter === "user" ? "还没有自定义技能，去创建一个吧！" : "暂无技能"}
+                  {t.skills.noMatch}
                 </p>
               </div>
             )}

@@ -4,6 +4,7 @@ import { useEffect, useRef, memo } from "react";
 import type { UIMessage } from "ai";
 import { MessageBubble } from "./message-bubble";
 import { Bot, AlertTriangle, X } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 interface MessageListProps {
   messages: UIMessage[];
@@ -13,7 +14,7 @@ interface MessageListProps {
   onDismissError?: () => void;
 }
 
-const HINTS = [
+const HINTS_ZH = [
   "帮我创建一个工作文件夹",
   "浏览 baidu.com 的内容",
   "下载这个网页的图片",
@@ -22,7 +23,18 @@ const HINTS = [
   "总结一下最近的科技新闻",
 ];
 
+const HINTS_EN = [
+  "Create a project folder for me",
+  "Browse baidu.com content",
+  "Download images from this webpage",
+  "Create a memo note",
+  "Write a bubble sort in Python",
+  "Summarize recent tech news",
+];
+
 export const MessageList = memo(function MessageList({ messages, isLoading, onHintClick, errorMessage, onDismissError }: MessageListProps) {
+  const { t, locale } = useI18n();
+  const HINTS = locale === "en" ? HINTS_EN : HINTS_ZH;
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollRAF = useRef<number>(0);
@@ -64,13 +76,13 @@ export const MessageList = memo(function MessageList({ messages, isLoading, onHi
             className="text-xl font-semibold"
             style={{ color: "var(--text-primary)" }}
           >
-            犀牛 Agent
+            {t.app.name}
           </h2>
           <p
             className="text-sm max-w-sm"
             style={{ color: "var(--text-muted)" }}
           >
-            你的智能 AI 助手，可以创建文件、浏览网页、下载资源、运行代码等。试试输入你的需求吧！
+            {t.chat.welcomeDesc}
           </p>
         </div>
         <div className="flex flex-wrap gap-2 mt-4 max-w-lg justify-center">

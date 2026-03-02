@@ -9,6 +9,7 @@ import { CommandPalette } from "@/components/command-palette/command-palette";
 import { useAppStore } from "@/lib/store";
 import { getThemeById, applyTheme } from "@/lib/themes";
 import { useRouter } from "next/navigation";
+import { useI18n } from "@/lib/i18n";
 
 interface SkillMeta {
   name: string;
@@ -25,6 +26,7 @@ export default function HomePage() {
   } = useAppStore();
   const [skills, setSkills] = useState<SkillMeta[]>([]);
   const router = useRouter();
+  const { t } = useI18n();
 
   useEffect(() => {
     applyTheme(getThemeById(settings.theme || "space-black"));
@@ -39,7 +41,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!activeSessionId && sessions.length === 0) {
-      createSession("新对话");
+      createSession(t.app.newChat);
     } else if (!activeSessionId && sessions.length > 0) {
       setActiveSession(sessions[0].id);
     }
@@ -54,7 +56,7 @@ export default function HomePage() {
   }, [setActiveSession]);
 
   const activeSession = sessions.find((s) => s.id === activeSessionId);
-  const headerTitle = activeSession?.title || "新对话";
+  const headerTitle = activeSession?.title || t.app.newChat;
 
   return (
     <div

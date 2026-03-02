@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useAppStore, type ProviderConfig } from "@/lib/store";
+import { useI18n } from "@/lib/i18n";
 
 export function ModelConfig() {
   const {
@@ -14,6 +15,7 @@ export function ModelConfig() {
     deleteModel,
   } = useAppStore();
 
+  const { t } = useI18n();
   const providers = getProviders();
   const currentProvider = providers.find((p) => p.id === settings.providerId);
 
@@ -22,18 +24,17 @@ export function ModelConfig() {
 
   return (
     <div className="space-y-6">
-      {/* 提供商列表 */}
       <div>
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-            模型提供商
+            {t.settings.modelProvider}
           </h3>
           <button
             onClick={() => setShowAdd(true)}
             className="text-xs px-3 py-1.5 rounded-lg transition-all hover:brightness-110"
             style={{ background: "var(--accent)", color: "#fff" }}
           >
-            + 添加
+            {t.settings.addProvider}
           </button>
         </div>
         <div className="grid grid-cols-3 gap-2">
@@ -64,7 +65,7 @@ export function ModelConfig() {
                   <span
                     className="absolute top-1 right-1.5 w-1.5 h-1.5 rounded-full"
                     style={{ background: "#00c853" }}
-                    title="API Key 已配置"
+                    title={t.settings.apiKeyConfigured}
                   />
                 )}
               </button>

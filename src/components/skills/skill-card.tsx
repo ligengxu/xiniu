@@ -16,6 +16,7 @@ import {
   ShieldCheck, Shield, FlaskConical, ImagePlus, Film, Clapperboard,
 } from "lucide-react";
 import type { ComponentType } from "react";
+import { useI18n } from "@/lib/i18n";
 
 const ICON_MAP: Record<string, ComponentType<{ className?: string; style?: React.CSSProperties }>> = {
   Wrench, FolderPlus, FileText, ExternalLink, Globe, BookOpen,
@@ -56,19 +57,19 @@ interface SkillCardProps {
   downloads?: number;
 }
 
-const CATEGORY_LABELS: Record<string, string> = {
-  office: "办公",
-  dev: "开发",
-  life: "生活",
-  creative: "创意",
-};
-
 export function SkillCard({
   displayName, description, icon, category, source,
   enabled = true, author, version,
   onToggle, onDelete, onExport, onInstall, onSetup, hasSetupGuide,
   mode = "installed", downloads,
 }: SkillCardProps) {
+  const { t } = useI18n();
+  const CATEGORY_LABELS: Record<string, string> = {
+    office: t.skills.categories.office,
+    dev: t.skills.categories.dev,
+    life: t.skills.categories.life,
+    creative: t.skills.categories.creative,
+  };
   const Icon = getIconComponent(icon);
 
   return (
@@ -108,7 +109,7 @@ export function SkillCard({
                 color: source === "builtin" ? "var(--accent)" : "#a78bfa",
               }}
             >
-              {source === "builtin" ? "内置" : "自定义"}
+              {source === "builtin" ? t.skills.builtIn : t.skills.custom}
             </span>
             {version && (
               <span className="text-[9px]" style={{ color: "var(--text-muted)" }}>
@@ -158,7 +159,7 @@ export function SkillCard({
                 }}
               >
                 {enabled ? <Power className="h-3 w-3" /> : <PowerOff className="h-3 w-3" />}
-                {enabled ? "启用中" : "已禁用"}
+                {enabled ? t.common.enabled : t.common.disabled}
               </button>
             )}
             {source === "user" && onDelete && (
@@ -167,7 +168,7 @@ export function SkillCard({
                 className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] transition-colors hover:opacity-80"
                 style={{ color: "var(--error)", background: "color-mix(in srgb, var(--error) 10%, transparent)" }}
               >
-                <Trash2 className="h-3 w-3" /> 删除
+                <Trash2 className="h-3 w-3" /> {t.common.delete}
               </button>
             )}
             {hasSetupGuide && onSetup && (
@@ -176,7 +177,7 @@ export function SkillCard({
                 className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] transition-colors hover:opacity-80"
                 style={{ color: "#f59e0b", background: "color-mix(in srgb, #f59e0b 12%, transparent)" }}
               >
-                <Settings className="h-3 w-3" /> 对接设置
+                <Settings className="h-3 w-3" /> {t.setup.title}
               </button>
             )}
             {onExport && (
@@ -185,7 +186,7 @@ export function SkillCard({
                 className="flex items-center gap-1 px-2 py-1 rounded-md text-[10px] transition-colors hover:opacity-80 ml-auto"
                 style={{ color: "var(--accent)", background: "color-mix(in srgb, var(--accent) 10%, transparent)" }}
               >
-                <Share2 className="h-3 w-3" /> 导出
+                <Share2 className="h-3 w-3" /> {t.common.export}
               </button>
             )}
           </>
@@ -196,7 +197,7 @@ export function SkillCard({
             className="flex items-center gap-1 px-3 py-1.5 rounded-md text-[10px] font-medium transition-colors hover:opacity-80 ml-auto"
             style={{ background: "var(--accent)", color: "white" }}
           >
-            <Download className="h-3 w-3" /> 安装
+            <Download className="h-3 w-3" /> {t.common.install}
           </button>
         )}
       </div>

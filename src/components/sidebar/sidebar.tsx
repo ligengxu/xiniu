@@ -5,6 +5,7 @@ import { Bot, Settings, PanelLeftClose, Plus, CalendarClock, MessageSquare, Tras
 import Link from "next/link";
 import { SkillList } from "./skill-list";
 import { useAppStore, type ChatSession } from "@/lib/store";
+import { useI18n } from "@/lib/i18n";
 
 interface SkillMeta {
   name: string;
@@ -21,19 +22,21 @@ interface SidebarProps {
   onSelectSession: (id: string) => void;
 }
 
-function formatTime(ts: number): string {
+function formatTime(ts: number, locale: string): string {
   const now = Date.now();
   const diff = now - ts;
-  if (diff < 60000) return "刚刚";
-  if (diff < 3600000) return Math.floor(diff / 60000) + "分钟前";
-  if (diff < 86400000) return Math.floor(diff / 3600000) + "小时前";
-  if (diff < 604800000) return Math.floor(diff / 86400000) + "天前";
-  return new Date(ts).toLocaleDateString("zh-CN");
+  const isEn = locale === "en";
+  if (diff < 60000) return isEn ? "just now" : "刚刚";
+  if (diff < 3600000) { const m = Math.floor(diff / 60000); return isEn ? `${m}m ago` : `${m}分钟前`; }
+  if (diff < 86400000) { const h = Math.floor(diff / 3600000); return isEn ? `${h}h ago` : `${h}小时前`; }
+  if (diff < 604800000) { const d = Math.floor(diff / 86400000); return isEn ? `${d}d ago` : `${d}天前`; }
+  return new Date(ts).toLocaleDateString(isEn ? "en-US" : "zh-CN");
 }
 
 export function Sidebar({ skills, open, onToggle, onNewChat, onSelectSession }: SidebarProps) {
   const { sessions, activeSessionId, deleteSession } = useAppStore();
   const [skillsExpanded, setSkillsExpanded] = useState(false);
+  const { t, locale } = useI18n();
 
   if (!open) return null;
 
@@ -59,14 +62,11 @@ export function Sidebar({ skills, open, onToggle, onNewChat, onSelectSession }: 
             <Bot className="h-4 w-4 text-white" />
           </div>
           <div>
-            <h1
-              className="text-sm font-bold"
-              style={{ color: "var(--text-primary)" }}
-            >
-              犀牛 Agent
+            <h1 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
+              {t.app.name}
             </h1>
             <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-              AI 智能助手
+              {t.app.description}
             </p>
           </div>
         </div>
@@ -90,17 +90,16 @@ export function Sidebar({ skills, open, onToggle, onNewChat, onSelectSession }: 
           }}
         >
           <Plus className="h-3.5 w-3.5" />
-          新对话
+          {t.sidebar.newChat}
         </button>
       </div>
 
-      {/* Chat History */}
       <div className="flex-1 overflow-y-auto">
         {sortedSessions.length > 0 && (
           <div className="px-2 pb-2">
             <div className="px-2 py-1">
               <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-                对话历史
+                {t.sidebar.chatHistory}
               </span>
             </div>
             <div className="space-y-0.5">
@@ -111,20 +110,20 @@ export function Sidebar({ skills, open, onToggle, onNewChat, onSelectSession }: 
                   isActive={session.id === activeSessionId}
                   onSelect={() => onSelectSession(session.id)}
                   onDelete={() => deleteSession(session.id)}
+                  locale={locale}
                 />
               ))}
             </div>
           </div>
         )}
 
-        {/* Skills (collapsible) */}
         <div className="px-2 pb-2">
           <button
             onClick={() => setSkillsExpanded(!skillsExpanded)}
             className="w-full flex items-center justify-between px-2 py-1 rounded-md hover:opacity-80 transition-opacity"
           >
             <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
-              技能列表 ({skills.length})
+              {t.sidebar.availableSkills} ({skills.length})
             </span>
             {skillsExpanded ? (
               <ChevronUp className="h-3 w-3" style={{ color: "var(--text-muted)" }} />
@@ -143,7 +142,7 @@ export function Sidebar({ skills, open, onToggle, onNewChat, onSelectSession }: 
           style={{ color: "var(--text-muted)" }}
         >
           <CalendarClock className="h-4 w-4" />
-          定时任务
+          {t.app.scheduler}
         </Link>
         <Link
           href="/settings"
@@ -151,18 +150,19 @@ export function Sidebar({ skills, open, onToggle, onNewChat, onSelectSession }: 
           style={{ color: "var(--text-muted)" }}
         >
           <Settings className="h-4 w-4" />
-          设置
+          {t.app.settings}
         </Link>
       </div>
     </aside>
   );
 }
 
-function SessionItem({ session, isActive, onSelect, onDelete }: {
+function SessionItem({ session, isActive, onSelect, onDelete, locale }: {
   session: ChatSession;
   isActive: boolean;
   onSelect: () => void;
   onDelete: () => void;
+  locale: string;
 }) {
   return (
     <div
@@ -185,7 +185,7 @@ function SessionItem({ session, isActive, onSelect, onDelete }: {
           {session.title}
         </p>
         <p className="text-[9px] truncate" style={{ color: "var(--text-muted)" }}>
-          {formatTime(session.updatedAt)}
+          {formatTime(session.updatedAt, locale)}
         </p>
       </div>
       <button

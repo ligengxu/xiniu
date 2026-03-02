@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useAppStore } from "@/lib/store";
+import { useI18n } from "@/lib/i18n";
 import { getThemeById, applyTheme } from "@/lib/themes";
 
 interface TaskStep {
@@ -63,6 +64,8 @@ interface Stats {
 
 export default function SchedulerPage() {
   const { settings } = useAppStore();
+  const { locale } = useI18n();
+  const isEn = locale === "en";
   const [tasks, setTasks] = useState<CronTask[]>([]);
   const [stats, setStats] = useState<Stats>({ total: 0, enabled: 0, running: 0, success: 0, failure: 0 });
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -107,7 +110,7 @@ export default function SchedulerPage() {
   }
 
   async function handleDelete(taskId: string) {
-    if (!confirm("确定要删除此任务？")) return;
+    if (!confirm(isEn ? "Delete this task?" : "确定要删除此任务？")) return;
     await fetch("/api/cron", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -146,7 +149,7 @@ export default function SchedulerPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
             <CalendarClock className="h-5 w-5" style={{ color: "var(--accent)" }} />
-            <h1 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>定时任务管理</h1>
+            <h1 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>{isEn ? "Scheduled Tasks" : "定时任务管理"}</h1>
             <button onClick={fetchData} className="ml-auto p-1.5 rounded-md hover:opacity-80" style={{ color: "var(--text-muted)" }}>
               <RefreshCw className="h-4 w-4" />
             </button>
@@ -155,11 +158,11 @@ export default function SchedulerPage() {
           {/* Stats */}
           <div className="flex gap-3 mb-4">
             {([
-              ["总计", stats.total, "var(--text-primary)"],
-              ["启用", stats.enabled, "var(--success)"],
-              ["运行中", stats.running, "var(--warning)"],
-              ["成功", stats.success, "var(--success)"],
-              ["失败", stats.failure, "var(--error)"],
+              [isEn ? "Total" : "总计", stats.total, "var(--text-primary)"],
+              [isEn ? "Enabled" : "启用", stats.enabled, "var(--success)"],
+              [isEn ? "Running" : "运行中", stats.running, "var(--warning)"],
+              [isEn ? "Success" : "成功", stats.success, "var(--success)"],
+              [isEn ? "Failed" : "失败", stats.failure, "var(--error)"],
             ] as const).map(([label, count, color]) => (
               <div key={label} className="px-3 py-2 rounded-lg" style={{ background: "var(--surface-elevated)" }}>
                 <div className="text-lg font-bold" style={{ color }}>{count}</div>
@@ -180,7 +183,7 @@ export default function SchedulerPage() {
                   color: tab === t ? "white" : "var(--text-muted)",
                 }}
               >
-                {t === "tasks" ? "任务列表" : "执行历史"}
+                {t === "tasks" ? (isEn ? "Tasks" : "任务列表") : (isEn ? "History" : "执行历史")}
               </button>
             ))}
           </div>
@@ -197,9 +200,9 @@ export default function SchedulerPage() {
             {tasks.length === 0 ? (
               <div className="text-center py-16 space-y-3">
                 <CalendarClock className="h-12 w-12 mx-auto" style={{ color: "var(--text-muted)" }} />
-                <p className="text-sm" style={{ color: "var(--text-muted)" }}>暂无定时任务</p>
+                <p className="text-sm" style={{ color: "var(--text-muted)" }}>{isEn ? "No scheduled tasks" : "暂无定时任务"}</p>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-                  在对话中告诉犀牛 Agent 创建定时任务，如："每5分钟搜索最新AI新闻并保存"
+                  {isEn ? 'Ask Xiniu Agent to create scheduled tasks in chat, e.g. "Search AI news every 5 minutes"' : '在对话中告诉犀牛 Agent 创建定时任务，如："每5分钟搜索最新AI新闻并保存"'}
                 </p>
               </div>
             ) : (
@@ -220,7 +223,7 @@ export default function SchedulerPage() {
                           </span>
                         )}
                         <span className="text-[10px]" style={{ color: "var(--text-muted)" }}>
-                          {task.schedule} | {task.steps.length}步骤 | 已执行{task.runCount}次
+                          {task.schedule} | {task.steps.length} {isEn ? "steps" : "步骤"} | {isEn ? `${task.runCount} runs` : `已执行${task.runCount}次`}
                         </span>
                       </div>
                       {task.description && (
@@ -229,7 +232,7 @@ export default function SchedulerPage() {
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <button onClick={() => handleToggle(task.id)} className="p-1.5 rounded-md hover:opacity-80" title={task.enabled ? "暂停" : "恢复"}>
+                      <button onClick={() => handleToggle(task.id)} className="p-1.5 rounded-md hover:opacity-80" title={task.enabled ? (isEn ? "Pause" : "暂停") : (isEn ? "Resume" : "恢复")}>
                         {task.enabled ? <Pause className="h-3.5 w-3.5" style={{ color: "var(--success)" }} /> : <Play className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />}
                       </button>
                       <button onClick={() => handleDelete(task.id)} className="p-1.5 rounded-md hover:opacity-80">
@@ -245,12 +248,12 @@ export default function SchedulerPage() {
                     <div className="px-4 pb-3 pt-1 border-t space-y-2" style={{ borderColor: "color-mix(in srgb, var(--border) 50%, transparent)" }}>
                       <div className="text-[10px] space-y-1" style={{ color: "var(--text-muted)" }}>
                         <p>ID: {task.id}</p>
-                        <p>创建: {new Date(task.createdAt).toLocaleString("zh-CN")}</p>
-                        {task.lastRun && <p>上次执行: {new Date(task.lastRun).toLocaleString("zh-CN")}</p>}
-                        {task.nextRun && <p>下次执行: {new Date(task.nextRun).toLocaleString("zh-CN")}</p>}
-                        {task.maxRuns ? <p>最大次数: {task.maxRuns} (已执行 {task.runCount})</p> : null}
+                        <p>{isEn ? "Created" : "创建"}: {new Date(task.createdAt).toLocaleString(isEn ? "en-US" : "zh-CN")}</p>
+                        {task.lastRun && <p>{isEn ? "Last Run" : "上次执行"}: {new Date(task.lastRun).toLocaleString(isEn ? "en-US" : "zh-CN")}</p>}
+                        {task.nextRun && <p>{isEn ? "Next Run" : "下次执行"}: {new Date(task.nextRun).toLocaleString(isEn ? "en-US" : "zh-CN")}</p>}
+                        {task.maxRuns ? <p>{isEn ? "Max runs" : "最大次数"}: {task.maxRuns} ({isEn ? `${task.runCount} done` : `已执行 ${task.runCount}`})</p> : null}
                       </div>
-                      <div className="text-[10px] font-medium mt-2" style={{ color: "var(--text-secondary)" }}>步骤:</div>
+                      <div className="text-[10px] font-medium mt-2" style={{ color: "var(--text-secondary)" }}>{isEn ? "Steps:" : "步骤:"}</div>
                       {task.steps.map((step, i) => (
                         <div key={i} className="flex items-center gap-2 text-[11px] pl-2" style={{ color: "var(--text-muted)" }}>
                           <span className="w-4 text-center font-bold" style={{ color: "var(--accent)" }}>{i + 1}</span>
@@ -260,7 +263,7 @@ export default function SchedulerPage() {
                       ))}
                       {task.conditions.length > 0 && (
                         <>
-                          <div className="text-[10px] font-medium mt-2" style={{ color: "var(--text-secondary)" }}>条件:</div>
+                          <div className="text-[10px] font-medium mt-2" style={{ color: "var(--text-secondary)" }}>{isEn ? "Conditions:" : "条件:"}</div>
                           {task.conditions.map((c, i) => (
                             <div key={i} className="text-[11px] pl-2" style={{ color: "var(--text-muted)" }}>
                               {c.type}: {c.value}
@@ -277,7 +280,7 @@ export default function SchedulerPage() {
         ) : (
           <div className="space-y-2">
             {history.length === 0 ? (
-              <p className="text-center py-12 text-sm" style={{ color: "var(--text-muted)" }}>暂无执行记录</p>
+              <p className="text-center py-12 text-sm" style={{ color: "var(--text-muted)" }}>{isEn ? "No execution history" : "暂无执行记录"}</p>
             ) : (
               history.slice(0, 100).map((h) => (
                 <div

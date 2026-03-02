@@ -35,14 +35,27 @@ detect_region() {
 }
 
 REGION=$(detect_region)
+
+detect_ui_lang() {
+  if [[ "$REGION" == "china" ]]; then echo "zh"; return; fi
+  local lang="${LANG:-}"
+  if [[ "$lang" == zh_CN* || "$lang" == zh_TW* ]]; then echo "zh"; return; fi
+  echo "en"
+}
+UI_LANG=$(detect_ui_lang)
+
+L() {
+  if [[ "$UI_LANG" == "en" ]]; then echo "$2"; else echo "$1"; fi
+}
+
 if [[ "$REGION" == "china" ]]; then
-  info "检测到国内网络环境，将使用加速镜像"
+  info "$(L '检测到国内网络环境，将使用加速镜像' 'China network detected, using acceleration mirrors')"
   GIT_MIRROR="https://ghproxy.net/https://github.com/ligengxu/xiniu.git"
   NPM_REGISTRY="https://registry.npmmirror.com"
   NVM_MIRROR="https://npmmirror.com/mirrors/node/"
   NVM_INSTALL="https://gitee.com/mirrors/nvm/raw/master/install.sh"
 else
-  info "检测到海外网络环境，使用官方源"
+  info "$(L '检测到海外网络环境，使用官方源' 'International network detected, using official sources')"
   GIT_MIRROR="$REPO"
   NPM_REGISTRY="https://registry.npmjs.org"
   NVM_MIRROR=""
@@ -276,61 +289,63 @@ clone_repo() {
 # ─── 安装依赖 ───
 install_deps() {
   cd "$INSTALL_DIR"
-  info "正在安装项目依赖..."
+  info "$(L '正在安装项目依赖...' 'Installing dependencies...')"
   if [[ "$REGION" == "china" ]]; then
     npm install --registry="$NPM_REGISTRY" 2>&1 | tail -5
   else
     npm install 2>&1 | tail -5
   fi
-  ok "依赖安装完成"
+  ok "$(L '依赖安装完成' 'Dependencies installed')"
 }
 
 # ─── 环境配置 ───
 setup_env() {
   cd "$INSTALL_DIR"
   if [[ ! -f ".env.local" ]]; then
-    info "创建默认配置文件 .env.local"
+    info "$(L '创建默认配置文件 .env.local' 'Creating default config .env.local')"
     cat > .env.local <<'ENVEOF'
-# AI 模型配置 (至少配置一个)
+# AI Model Config (configure at least one)
 # OPENAI_API_KEY=sk-xxx
 # OPENAI_BASE_URL=https://api.openai.com/v1
 
-# 通义千问 (国内推荐)
+# Tongyi Qwen (recommended for China)
 # DASHSCOPE_API_KEY=sk-xxx
 
-# Anthropic Claude
-# ANTHROPIC_API_KEY=sk-xxx
+# DeepSeek
+# DEEPSEEK_API_KEY=sk-xxx
 ENVEOF
-    ok "已创建 .env.local，请编辑填入 API Key"
+    ok "$(L '已创建 .env.local，请编辑填入 API Key' 'Created .env.local, please edit and add your API Key')"
   else
-    ok ".env.local 已存在"
+    ok "$(L '.env.local 已存在' '.env.local already exists')"
   fi
+
+  info "$(L "界面语言: $UI_LANG" "UI language: $UI_LANG")"
 }
 
 # ─── 完成提示 ───
 print_done() {
   echo ""
   echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  echo -e "${GREEN}${BOLD}  犀牛 Agent 安装完成!${NC}"
+  echo -e "${GREEN}${BOLD}  $(L '犀牛 Agent 安装完成!' 'Xiniu Agent installed!')${NC}"
   echo -e "${GREEN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
   echo ""
-  echo -e "  ${CYAN}项目目录:${NC}  $INSTALL_DIR"
-  echo -e "  ${CYAN}Node.js:${NC}   $(node -v 2>/dev/null || echo '未知')"
-  echo -e "  ${CYAN}npm:${NC}       $(npm -v 2>/dev/null || echo '未知')"
-  echo -e "  ${CYAN}npm 镜像:${NC}  $(npm config get registry 2>/dev/null)"
+  echo -e "  ${CYAN}$(L '项目目录' 'Project'):${NC}  $INSTALL_DIR"
+  echo -e "  ${CYAN}Node.js:${NC}   $(node -v 2>/dev/null || echo '?')"
+  echo -e "  ${CYAN}npm:${NC}       $(npm -v 2>/dev/null || echo '?')"
+  echo -e "  ${CYAN}$(L '语言' 'Language'):${NC}     $UI_LANG"
   echo ""
-  echo -e "  ${BOLD}下一步:${NC}"
-  echo -e "  ${CYAN}1.${NC} 编辑配置:  ${YELLOW}nano $INSTALL_DIR/.env.local${NC}"
-  echo -e "  ${CYAN}2.${NC} 启动开发:  ${YELLOW}cd $INSTALL_DIR && npm run dev${NC}"
-  echo -e "  ${CYAN}3.${NC} 生产构建:  ${YELLOW}cd $INSTALL_DIR && npm run build && npm start${NC}"
+  echo -e "  ${BOLD}$(L '下一步' 'Next steps'):${NC}"
+  echo -e "  ${CYAN}1.${NC} $(L '编辑配置' 'Edit config'):  ${YELLOW}nano $INSTALL_DIR/.env.local${NC}"
+  echo -e "  ${CYAN}2.${NC} $(L '启动开发' 'Start dev'):    ${YELLOW}cd $INSTALL_DIR && npm run dev${NC}"
+  echo -e "  ${CYAN}3.${NC} $(L '生产构建' 'Build prod'):   ${YELLOW}cd $INSTALL_DIR && npm run build && npm start${NC}"
   echo ""
-  echo -e "  ${CYAN}技能商店:${NC}  启动后访问 http://localhost:3000/skills → 商店标签页"
-  echo -e "  ${CYAN}文档:${NC}      https://github.com/ligengxu/xiniu"
+  echo -e "  ${CYAN}$(L '技能商店' 'Skill Store'):${NC}  http://localhost:3000/skills"
+  echo -e "  ${CYAN}$(L '文档' 'Docs'):${NC}      https://github.com/ligengxu/xiniu"
   echo ""
 
-  if ask "是否现在启动开发服务器?"; then
+  if ask "$(L '是否现在启动开发服务器?' 'Start dev server now?')"; then
     cd "$INSTALL_DIR"
-    info "正在启动 npm run dev ..."
+    info "$(L '正在启动...' 'Starting...')"
     npm run dev
   fi
 }
@@ -339,7 +354,7 @@ print_done() {
 main() {
   echo ""
   echo -e "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-  echo -e "${CYAN}${BOLD}  犀牛 Agent 一键安装脚本${NC}"
+  echo -e "${CYAN}${BOLD}  $(L '犀牛 Agent 一键安装脚本' 'Xiniu Agent Installer')${NC}"
   echo -e "${CYAN}${BOLD}  https://github.com/ligengxu/xiniu${NC}"
   echo -e "${CYAN}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
   echo ""

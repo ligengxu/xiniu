@@ -4,9 +4,11 @@ import { useEffect } from "react";
 import { Check } from "lucide-react";
 import { THEMES, getThemeById, applyTheme } from "@/lib/themes";
 import { useAppStore } from "@/lib/store";
+import { useI18n } from "@/lib/i18n";
 
 export function ThemeSelector() {
   const { settings, setSettings } = useAppStore();
+  const { t } = useI18n();
   const currentThemeId = settings.theme || "space-black";
 
   useEffect(() => {
@@ -16,7 +18,7 @@ export function ThemeSelector() {
   return (
     <div className="space-y-3">
       <h3 className="text-sm font-medium" style={{ color: "var(--text-primary)" }}>
-        主题外观
+        {t.settings.themeAppearance}
       </h3>
       <div className="grid grid-cols-3 gap-3">
         {THEMES.map((theme) => {

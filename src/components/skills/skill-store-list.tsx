@@ -8,6 +8,7 @@ import {
   ChevronDown, ChevronRight,
 } from "lucide-react";
 import { getIconComponent } from "./skill-card";
+import { useI18n } from "@/lib/i18n";
 
 interface CommunitySkill {
   name: string;
@@ -25,45 +26,22 @@ interface SkillStoreListProps {
   onInstall: (item: { name: string; url: string }) => Promise<void>;
 }
 
-const CATEGORIES = [
-  {
-    key: "dev",
-    label: "开发工具",
-    icon: Code2,
-    gradient: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-    color: "#3b82f6",
-    desc: "编译、调试、部署、逆向、数据库、网络工具",
-  },
-  {
-    key: "creative",
-    label: "创意设计",
-    icon: Sparkles,
-    gradient: "linear-gradient(135deg, #f59e0b, #d97706)",
-    color: "#f59e0b",
-    desc: "图像生成、视频编辑、OCR、截图、SVG",
-  },
-  {
-    key: "office",
-    label: "办公效率",
-    icon: Briefcase,
-    gradient: "linear-gradient(135deg, #10b981, #059669)",
-    color: "#10b981",
-    desc: "邮件、翻译、PDF、表格、剪贴板、密码",
-  },
-  {
-    key: "life",
-    label: "生活服务",
-    icon: Coffee,
-    gradient: "linear-gradient(135deg, #ec4899, #db2777)",
-    color: "#ec4899",
-    desc: "天气、汇率、股票、RSS、机器人",
-  },
-] as const;
+function useCategories() {
+  const { t } = useI18n();
+  return [
+    { key: "dev", label: t.skills.categoryDev, icon: Code2, gradient: "linear-gradient(135deg, #3b82f6, #1d4ed8)", color: "#3b82f6", desc: t.skills.categoryDevDesc },
+    { key: "creative", label: t.skills.categoryCreative, icon: Sparkles, gradient: "linear-gradient(135deg, #f59e0b, #d97706)", color: "#f59e0b", desc: t.skills.categoryCreativeDesc },
+    { key: "office", label: t.skills.categoryOffice, icon: Briefcase, gradient: "linear-gradient(135deg, #10b981, #059669)", color: "#10b981", desc: t.skills.categoryOfficeDesc },
+    { key: "life", label: t.skills.categoryLife, icon: Coffee, gradient: "linear-gradient(135deg, #ec4899, #db2777)", color: "#ec4899", desc: t.skills.categoryLifeDesc },
+  ] as const;
+}
 
 type ViewMode = "grid" | "category";
 type FilterMode = "all" | "installed" | "available";
 
 export function SkillStoreList({ installedNames: _installedNames, onInstall: _onInstall }: SkillStoreListProps) {
+  const { t, fmt } = useI18n();
+  const CATEGORIES = useCategories();
   const [skills, setSkills] = useState<CommunitySkill[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -100,7 +78,7 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
 
   async function handleInstall(skill: CommunitySkill) {
     setInstalling(skill.name);
-    setInstallLog((prev) => ({ ...prev, [skill.name]: "downloading" }));
+    setInstallLog((prev) => ({ ...prev, [skill.name]: "dl:" + t.skills.downloading }));
     try {
       const res = await fetch("/api/skills/store", {
         method: "POST",
@@ -130,7 +108,7 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
   }
 
   async function handleUninstall(skill: CommunitySkill) {
-    if (!confirm(`确定要卸载「${skill.displayName}」吗？`)) return;
+    if (!confirm(fmt(t.skills.uninstallConfirm, { name: skill.displayName }))) return;
     setInstalling(skill.name);
     try {
       const res = await fetch("/api/skills/store", {
@@ -149,7 +127,7 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
   }
 
   async function handleBatchInstall() {
-    if (!confirm("将安装所有未安装的社区技能及其依赖，可能需要几分钟，确定继续？")) return;
+    if (!confirm(t.skills.installAllConfirm)) return;
     setBatchInstalling(true);
     try {
       const res = await fetch("/api/skills/store", {
@@ -162,7 +140,7 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
         await fetchStore();
       }
     } catch (err) {
-      alert(`批量安装失败: ${err instanceof Error ? err.message : String(err)}`);
+      alert(`${t.setup.installFailed}: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
       setBatchInstalling(false);
     }
@@ -213,7 +191,7 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
     return (
       <div className="flex flex-col items-center justify-center py-16 gap-3">
         <Loader2 className="h-8 w-8 animate-spin" style={{ color: "var(--accent)" }} />
-        <p className="text-xs" style={{ color: "var(--text-muted)" }}>加载技能商店...</p>
+        <p className="text-xs" style={{ color: "var(--text-muted)" }}>{t.common.loading}</p>
       </div>
     );
   }
@@ -236,7 +214,7 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
     return (
       <div className="text-center py-16 space-y-2">
         <PackageSearch className="h-12 w-12 mx-auto" style={{ color: "var(--text-muted)" }} />
-        <p className="text-sm" style={{ color: "var(--text-muted)" }}>技能商店为空</p>
+        <p className="text-sm" style={{ color: "var(--text-muted)" }}>{t.skills.storeEmpty}</p>
       </div>
     );
   }
@@ -276,8 +254,8 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
                 <span className="text-lg font-bold" style={{ color: isActive ? "white" : cat.color }}>
                   {catStats.total}
                 </span>
-                <span className="text-[10px]" style={{ color: isActive ? "rgba(255,255,255,0.7)" : "var(--text-muted)" }}>
-                  个技能 · 已装 {catStats.installed}
+                  <span className="text-[10px]" style={{ color: isActive ? "rgba(255,255,255,0.7)" : "var(--text-muted)" }}>
+                  {fmt(t.skills.skillCount, { n: catStats.total })} · {fmt(t.skills.installedN, { n: catStats.installed })}
                 </span>
               </div>
               <p className="text-[9px] mt-1 line-clamp-1"
@@ -296,13 +274,13 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
           style={{ borderColor: "var(--border)", background: "var(--surface-elevated)" }}>
           <Search className="h-4 w-4 shrink-0" style={{ color: "var(--text-muted)" }} />
           <input value={search} onChange={(e) => setSearch(e.target.value)}
-            placeholder="搜索技能名称、功能描述..."
+            placeholder={t.skills.searchPlaceholder}
             className="bg-transparent text-xs outline-none flex-1"
             style={{ color: "var(--text-primary)" }} />
           {search && (
             <button onClick={() => setSearch("")} className="text-[10px] px-1 rounded"
               style={{ color: "var(--text-muted)" }}>
-              清除
+              {t.common.clear}
             </button>
           )}
         </div>
@@ -311,9 +289,9 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
         <div className="flex items-center rounded-lg border overflow-hidden"
           style={{ borderColor: "var(--border)" }}>
           {([
-            { key: "all" as FilterMode, label: "全部", count: stats.total },
-            { key: "installed" as FilterMode, label: "已安装", count: stats.installed },
-            { key: "available" as FilterMode, label: "未安装", count: stats.available },
+            { key: "all" as FilterMode, label: t.skills.filterAll, count: stats.total },
+            { key: "installed" as FilterMode, label: t.skills.filterInstalled, count: stats.installed },
+            { key: "available" as FilterMode, label: t.skills.filterAvailable, count: stats.available },
           ]).map((f) => (
             <button key={f.key} onClick={() => setFilter(f.key)}
               className="px-3 py-1.5 text-[10px] transition-colors"
@@ -330,8 +308,8 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
         <div className="flex items-center rounded-lg border overflow-hidden"
           style={{ borderColor: "var(--border)" }}>
           {([
-            { key: "category" as ViewMode, label: "分类" },
-            { key: "grid" as ViewMode, label: "网格" },
+            { key: "category" as ViewMode, label: t.skills.viewCategory },
+            { key: "grid" as ViewMode, label: t.skills.viewGrid },
           ]).map((v) => (
             <button key={v.key} onClick={() => setViewMode(v.key)}
               className="px-2.5 py-1.5 text-[10px] transition-colors"
@@ -349,7 +327,7 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
           <span className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-full"
             style={{ color: "var(--text-muted)", background: "var(--surface-elevated)" }}>
             <Globe className="h-3 w-3" />
-            {region === "china" ? "国内镜像" : "官方源"}
+            {region === "china" ? t.skills.regionChina : t.skills.regionGlobal}
           </span>
           <button onClick={fetchStore} className="p-1.5 rounded-lg hover:opacity-70 transition-opacity"
             style={{ color: "var(--text-muted)", background: "var(--surface-elevated)" }}>
@@ -360,7 +338,7 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-[11px] font-medium transition-all hover:shadow-lg active:scale-95"
               style={{ background: "var(--accent)", color: "white" }}>
               {batchInstalling ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <DownloadCloud className="h-3.5 w-3.5" />}
-              全部安装
+              {t.skills.installAll}
             </button>
           )}
         </div>
@@ -387,12 +365,12 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
                     <div className="flex items-center gap-2">
                       <h2 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{cat.label}</h2>
                       <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: `${cat.color}15`, color: cat.color }}>
-                        {catSkills.length} 个
+                        {fmt(t.skills.skillCount, { n: catSkills.length })}
                       </span>
                       {catInstalled > 0 && (
                         <span className="text-[10px] px-2 py-0.5 rounded-full"
                           style={{ background: "color-mix(in srgb, var(--success, #22c55e) 15%, transparent)", color: "var(--success, #22c55e)" }}>
-                          已装 {catInstalled}
+                          {fmt(t.skills.installedN, { n: catInstalled })}
                         </span>
                       )}
                     </div>
@@ -448,13 +426,13 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
         <div className="text-center py-12 space-y-2">
           <Search className="h-8 w-8 mx-auto" style={{ color: "var(--text-muted)" }} />
           <p className="text-xs" style={{ color: "var(--text-muted)" }}>
-            {search ? `未找到与「${search}」匹配的技能` : "当前筛选下无技能"}
+            {search ? `${t.skills.noMatch}: "${search}"` : t.skills.noMatch}
           </p>
           {(search || activeCategory) && (
             <button onClick={() => { setSearch(""); setActiveCategory(null); setFilter("all"); }}
               className="text-[10px] px-3 py-1 rounded-lg mx-auto"
               style={{ color: "var(--accent)", background: "color-mix(in srgb, var(--accent) 10%, transparent)" }}>
-              清除所有筛选
+              {t.skills.clearFilters}
             </button>
           )}
         </div>
@@ -463,13 +441,13 @@ export function SkillStoreList({ installedNames: _installedNames, onInstall: _on
       {/* ── 底部统计 ── */}
       <div className="flex items-center justify-center gap-4 pt-2 pb-1">
         <span className="flex items-center gap-1 text-[10px]" style={{ color: "var(--text-muted)" }}>
-          <Package className="h-3 w-3" /> 共 {stats.total} 个社区技能
+          <Package className="h-3 w-3" /> {fmt(t.skills.totalSkills, { n: stats.total })}
         </span>
         <span className="flex items-center gap-1 text-[10px]" style={{ color: "var(--success, #22c55e)" }}>
-          <CheckCircle2 className="h-3 w-3" /> 已安装 {stats.installed}
+          <CheckCircle2 className="h-3 w-3" /> {fmt(t.skills.installedCount, { n: stats.installed })}
         </span>
         <span className="flex items-center gap-1 text-[10px]" style={{ color: "var(--text-muted)" }}>
-          <Download className="h-3 w-3" /> 可安装 {stats.available}
+          <Download className="h-3 w-3" /> {fmt(t.skills.availableCount, { n: stats.available })}
         </span>
       </div>
     </div>
@@ -489,12 +467,13 @@ function SkillStoreCard({
   onInstall: (s: CommunitySkill) => void;
   onUninstall: (s: CommunitySkill) => void;
 }) {
+  const { t } = useI18n();
   const Icon = getIconComponent(skill.icon);
   const isActive = installing === skill.name;
   const log = installLog[skill.name] || "";
 
-  const logStatus = log.startsWith("ok:") ? "ok" : log.startsWith("err:") ? "err" : log === "downloading" ? "loading" : "";
-  const logText = log.replace(/^(ok:|err:)/, "");
+  const logStatus = log.startsWith("ok:") ? "ok" : log.startsWith("err:") ? "err" : log.startsWith("dl:") ? "loading" : "";
+  const logText = log.replace(/^(ok:|err:|dl:)/, "");
 
   return (
     <div className="rounded-xl border p-3.5 transition-all hover:shadow-lg hover:-translate-y-0.5 group relative overflow-hidden"
@@ -545,7 +524,7 @@ function SkillStoreCard({
           <p className="text-[9px] truncate" style={{
             color: logStatus === "ok" ? "var(--success, #22c55e)" : logStatus === "err" ? "var(--error, #ef4444)" : "var(--text-muted)",
           }}>
-            {logStatus === "loading" ? "正在下载并安装..." : logText}
+            {logStatus === "loading" ? t.skills.downloading : logText}
           </p>
         </div>
       )}
@@ -555,11 +534,11 @@ function SkillStoreCard({
         style={{ borderColor: "color-mix(in srgb, var(--border) 40%, transparent)" }}>
         {skill.installed ? (
           <>
-            <span className="text-[9px] flex-1" style={{ color: "var(--success, #22c55e)" }}>已安装</span>
+            <span className="text-[9px] flex-1" style={{ color: "var(--success, #22c55e)" }}>{t.common.installed}</span>
             <button onClick={() => onUninstall(skill)} disabled={isActive}
               className="flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] transition-all hover:opacity-80"
               style={{ color: "var(--error, #ef4444)", background: "color-mix(in srgb, var(--error, #ef4444) 8%, transparent)" }}>
-              <Trash2 className="h-3 w-3" /> 卸载
+              <Trash2 className="h-3 w-3" /> {t.common.uninstall}
             </button>
           </>
         ) : (
@@ -567,7 +546,7 @@ function SkillStoreCard({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-medium ml-auto transition-all hover:shadow-md active:scale-95"
             style={{ background: catGradient, color: "white" }}>
             {isActive ? <Loader2 className="h-3 w-3 animate-spin" /> : <Download className="h-3 w-3" />}
-            {isActive ? "安装中" : "安装"}
+            {isActive ? t.common.installing : t.common.install}
           </button>
         )}
       </div>

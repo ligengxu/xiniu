@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useMemo, memo } from "react";
+import { getLocale } from "@/lib/i18n/use-i18n";
 import {
   CheckCircle2,
   XCircle,
@@ -92,23 +93,23 @@ function getStepPhase(
   success?: boolean
 ): { label: string; icon: typeof FileCode2; color: string; pct: number } {
   if (state === "output-error") {
-    return { label: "执行出错", icon: XCircle, color: "var(--error)", pct: 100 };
+    return { label: getLocale() === "en" ? "Error" : "执行出错", icon: XCircle, color: "var(--error)", pct: 100 };
   }
   if (hasResult) {
     return success
-      ? { label: "已完成", icon: CheckCircle2, color: "var(--success)", pct: 100 }
-      : { label: "执行失败", icon: XCircle, color: "var(--error)", pct: 100 };
+      ? { label: getLocale() === "en" ? "Done" : "已完成", icon: CheckCircle2, color: "var(--success)", pct: 100 }
+      : { label: getLocale() === "en" ? "Failed" : "执行失败", icon: XCircle, color: "var(--error)", pct: 100 };
   }
   if (state === "input-streaming") {
-    return { label: `正在生成内容 (${inputContentLen} 字符)`, icon: FileCode2, color: "var(--warning)", pct: 40 };
+    return { label: getLocale() === "en" ? `Generating (${inputContentLen} chars)` : `正在生成内容 (${inputContentLen} 字符)`, icon: FileCode2, color: "var(--warning)", pct: 40 };
   }
   if (state === "input-available") {
     if (hasInput && inputContentLen > 0) {
-      return { label: "正在写入文件...", icon: Save, color: "var(--accent)", pct: 75 };
+      return { label: getLocale() === "en" ? "Writing file..." : "正在写入文件...", icon: Save, color: "var(--accent)", pct: 75 };
     }
-    return { label: "准备参数中...", icon: Loader2, color: "var(--warning)", pct: 15 };
+    return { label: getLocale() === "en" ? "Preparing..." : "准备参数中...", icon: Loader2, color: "var(--warning)", pct: 15 };
   }
-  return { label: "等待调用...", icon: Loader2, color: "var(--text-muted)", pct: 5 };
+  return { label: getLocale() === "en" ? "Waiting..." : "等待调用...", icon: Loader2, color: "var(--text-muted)", pct: 5 };
 }
 
 const StreamingCodePreview = memo(function StreamingCodePreview({
@@ -159,7 +160,7 @@ const StreamingCodePreview = memo(function StreamingCodePreview({
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[10px] font-mono" style={{ color: "var(--text-muted)" }}>
-            {lineCount} 行 · {content.length} 字符
+            {lineCount} {getLocale() === "en" ? "lines" : "行"} · {content.length} {getLocale() === "en" ? "chars" : "字符"}
           </span>
           {isStreaming && (
             <span className="typing-cursor-blink text-[10px] font-bold" style={{ color: "var(--accent)" }}>
@@ -170,7 +171,7 @@ const StreamingCodePreview = memo(function StreamingCodePreview({
             onClick={() => setCollapsed(!collapsed)}
             className="p-0.5 rounded transition-colors"
             style={{ color: "var(--text-muted)" }}
-            title={collapsed ? "展开代码" : "折叠代码"}
+            title={collapsed ? (getLocale() === "en" ? "Expand" : "展开代码") : (getLocale() === "en" ? "Collapse" : "折叠代码")}
           >
             {collapsed ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
           </button>
@@ -194,7 +195,7 @@ const StreamingCodePreview = memo(function StreamingCodePreview({
               <>
                 {startIdx > 0 && (
                   <div className="text-center text-[10px] py-0.5" style={{ color: "var(--text-muted)" }}>
-                    ... 前 {startIdx} 行已折叠 ...
+                    {getLocale() === "en" ? `... ${startIdx} lines collapsed ...` : `... 前 ${startIdx} 行已折叠 ...`}
                   </div>
                 )}
                 {visibleLines.map((line, idx) => {
@@ -310,7 +311,7 @@ export const ToolInvocationCard = memo(function ToolInvocationCard({ toolName, s
             color: "var(--text-muted)",
             background: "color-mix(in srgb, var(--surface) 80%, transparent)",
           }}>
-            步骤 {stepIndex}/{totalSteps}
+            {getLocale() === "en" ? "Step" : "步骤"} {stepIndex}/{totalSteps}
           </span>
         )}
         <span className="ml-auto flex items-center gap-1.5">
@@ -381,12 +382,12 @@ export const ToolInvocationCard = memo(function ToolInvocationCard({ toolName, s
                   <span className="shrink-0 font-medium" style={{ color: "var(--text-secondary)" }}>{k}:</span>
                   {isMultiline ? (
                     <pre className="mt-0.5 whitespace-pre-wrap break-all font-mono text-[11px] pl-2 border-l-2" style={{ color: "var(--text-primary)", borderColor: "var(--border)" }}>
-                      {isLong ? val.slice(0, 500) + `\n... (${val.length}字符)` : val}
+                      {isLong ? val.slice(0, 500) + `\n... (${val.length} ${getLocale() === "en" ? "chars" : "字符"})` : val}
                     </pre>
                   ) : isLong ? (
                     <span className="break-all" style={{ color: "var(--text-primary)" }}>
                       {val.slice(0, 200)}
-                      <span style={{ color: "var(--text-muted)" }}>... ({val.length}字符)</span>
+                      <span style={{ color: "var(--text-muted)" }}>... ({val.length} {getLocale() === "en" ? "chars" : "字符"})</span>
                     </span>
                   ) : (
                     <span className="break-all" style={{ color: "var(--text-primary)" }}>{val}</span>
@@ -418,12 +419,12 @@ export const ToolInvocationCard = memo(function ToolInvocationCard({ toolName, s
                   <span className="shrink-0 font-medium" style={{ color: "var(--text-secondary)" }}>{k}:</span>
                   {isMultiline ? (
                     <pre className="mt-0.5 whitespace-pre-wrap break-all font-mono text-[11px] pl-2 border-l-2" style={{ color: "var(--text-primary)", borderColor: "var(--border)" }}>
-                      {isLong ? val.slice(0, 500) + `\n... (${val.length}字符)` : val}
+                      {isLong ? val.slice(0, 500) + `\n... (${val.length} ${getLocale() === "en" ? "chars" : "字符"})` : val}
                     </pre>
                   ) : isLong ? (
                     <span className="break-all" style={{ color: "var(--text-primary)" }}>
                       {val.slice(0, 200)}
-                      <span style={{ color: "var(--text-muted)" }}>... ({val.length}字符)</span>
+                      <span style={{ color: "var(--text-muted)" }}>... ({val.length} {getLocale() === "en" ? "chars" : "字符"})</span>
                     </span>
                   ) : (
                     <span className="break-all" style={{ color: "var(--text-primary)" }}>{val}</span>
@@ -456,7 +457,7 @@ export const ToolInvocationCard = memo(function ToolInvocationCard({ toolName, s
             style={{ color: "var(--accent)" }}
           >
             <ExternalLink className="h-3 w-3" />
-            在新标签页打开
+            {getLocale() === "en" ? "Open in new tab" : "在新标签页打开"}
           </a>
         ) : null}
 
@@ -478,9 +479,9 @@ export const ToolInvocationCard = memo(function ToolInvocationCard({ toolName, s
             style={{ color: "var(--accent)" }}
           >
             {detailsOpen ? (
-              <><ChevronUp className="h-3 w-3" /> 收起详情</>
+              <><ChevronUp className="h-3 w-3" /> {getLocale() === "en" ? "Collapse" : "收起详情"}</>
             ) : (
-              <><ChevronDown className="h-3 w-3" /> 展开详情</>
+              <><ChevronDown className="h-3 w-3" /> {getLocale() === "en" ? "Expand" : "展开详情"}</>
             )}
           </button>
         )}

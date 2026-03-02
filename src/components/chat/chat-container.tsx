@@ -6,6 +6,7 @@ import { MessageList } from "./message-list";
 import { ChatInput } from "./chat-input";
 import { useAppStore, saveSessionMessages, loadSessionMessages } from "@/lib/store";
 import { DefaultChatTransport } from "ai";
+import { getLocale } from "@/lib/i18n/use-i18n";
 
 interface ChatContainerProps {
   sessionId: string | null;
@@ -16,9 +17,9 @@ export function ChatContainer({ sessionId }: ChatContainerProps) {
 }
 
 const COMPLEXITY_MAP: Record<string, string> = {
-  simple: "[代码质量: 简单档]",
-  medium: "[代码质量: 中等档]",
-  complex: "[代码质量: 复杂档]",
+  simple: "[Code Quality: Simple]",
+  medium: "[Code Quality: Standard]",
+  complex: "[Code Quality: Professional]",
 };
 
 function ChatContainerInner({ sessionId }: ChatContainerProps) {
@@ -57,9 +58,9 @@ function ChatContainerInner({ sessionId }: ChatContainerProps) {
   const onChatError = useCallback((err: Error) => {
     const msg = err?.message || String(err);
     if (msg.includes("413") || msg.includes("上下文过长") || msg.includes("input length")) {
-      setChatError("对话上下文过长，请点击左侧「新对话」开始新会话后重试。");
+      setChatError(getLocale() === "en" ? "Context too long. Please start a new chat." : "对话上下文过长，请点击左侧「新对话」开始新会话后重试。");
     } else {
-      setChatError(`AI 请求失败: ${msg.slice(0, 150)}`);
+      setChatError(getLocale() === "en" ? `AI request failed: ${msg.slice(0, 150)}` : `AI 请求失败: ${msg.slice(0, 150)}`);
     }
   }, []);
 
@@ -74,7 +75,7 @@ function ChatContainerInner({ sessionId }: ChatContainerProps) {
 
   useEffect(() => {
     if (status === "error" && !chatError) {
-      setChatError("AI 响应异常，可能是对话上下文过长。请新建一个对话后重试。");
+      setChatError(getLocale() === "en" ? "AI response error. Please start a new chat." : "AI 响应异常，可能是对话上下文过长。请新建一个对话后重试。");
     }
   }, [status, chatError]);
 

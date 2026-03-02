@@ -1,7 +1,21 @@
 $ErrorActionPreference = "Stop"
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
-function Write-Info  { param($m) Write-Host "[犀牛] $m" -ForegroundColor Cyan }
+$script:UI_LANG = "zh"
+
+function Detect-UILang {
+    param($Region)
+    if ($Region -eq "china") { return "zh" }
+    $culture = (Get-Culture).Name
+    if ($culture -match "^zh") { return "zh" }
+    $osLang = (Get-WinSystemLocale -ErrorAction SilentlyContinue).Name
+    if ($osLang -match "^zh") { return "zh" }
+    return "en"
+}
+
+function L { param($zh, $en) if ($script:UI_LANG -eq "en") { $en } else { $zh } }
+
+function Write-Info  { param($m) $tag = L "犀牛" "Xiniu"; Write-Host "[$tag] $m" -ForegroundColor Cyan }
 function Write-Ok    { param($m) Write-Host "[OK] $m" -ForegroundColor Green }
 function Write-Warn  { param($m) Write-Host "[!] $m" -ForegroundColor Yellow }
 function Write-Fail  { param($m) Write-Host "[X] $m" -ForegroundColor Red }
@@ -30,8 +44,10 @@ function Detect-Region {
 }
 
 $Region = Detect-Region
+$script:UI_LANG = Detect-UILang -Region $Region
+
 if ($Region -eq "china") {
-    Write-Info "检测到国内网络环境，将使用加速镜像"
+    Write-Info (L "检测到国内网络环境，将使用加速镜像" "China network detected, using acceleration mirrors")
     $NPM_REGISTRY = "https://registry.npmmirror.com"
     $GIT_MIRRORS = @(
         "https://ghproxy.net/https://github.com/ligengxu/xiniu.git",
@@ -41,7 +57,7 @@ if ($Region -eq "china") {
     $NVM_URL = "https://npmmirror.com/mirrors/nvm-setup/v1.2.2/nvm-setup.exe"
     $NODE_URL = "https://npmmirror.com/mirrors/node/v22.16.0/node-v22.16.0-x64.msi"
 } else {
-    Write-Info "检测到海外网络环境，使用官方源"
+    Write-Info (L "检测到海外网络环境，使用官方源" "International network detected, using official sources")
     $NPM_REGISTRY = "https://registry.npmjs.org"
     $GIT_MIRRORS = @("https://github.com/ligengxu/xiniu.git")
     $NVM_URL = "https://github.com/coreybutler/nvm-windows/releases/download/1.2.2/nvm-setup.exe"
@@ -281,58 +297,60 @@ function Setup-Env {
     if (-not (Test-Path $envFile)) {
         Write-Info "创建默认配置文件 .env.local"
         @"
-# AI 模型配置 (至少配置一个)
+# AI Model Config (configure at least one)
 # OPENAI_API_KEY=sk-xxx
 # OPENAI_BASE_URL=https://api.openai.com/v1
 
-# 通义千问 (国内推荐)
-# DASHSCOPE_API_KEY=sk-xxx
+# DeepSeek
+# DEEPSEEK_API_KEY=sk-xxx
 
-# Anthropic Claude
-# ANTHROPIC_API_KEY=sk-xxx
+# Tongyi Qwen (recommended for China)
+# DASHSCOPE_API_KEY=sk-xxx
 "@ | Set-Content $envFile -Encoding UTF8
-        Write-Ok "已创建 .env.local"
+        Write-Ok (L "已创建 .env.local" "Created .env.local")
     } else {
-        Write-Ok ".env.local 已存在"
+        Write-Ok (L ".env.local 已存在" ".env.local already exists")
     }
+
+    Write-Info (L "界面语言: $script:UI_LANG" "UI language: $script:UI_LANG")
 }
 
 function Print-Done {
     Write-Host ""
     Write-Host "================================================" -ForegroundColor Green
-    Write-Host "  犀牛 Agent 安装完成!" -ForegroundColor Green
+    Write-Host "  $(L '犀牛 Agent 安装完成!' 'Xiniu Agent installed!')" -ForegroundColor Green
     Write-Host "================================================" -ForegroundColor Green
     Write-Host ""
-    Write-Host "  项目目录:  $INSTALL_DIR" -ForegroundColor Cyan
+    Write-Host "  $(L '项目目录' 'Project'):  $INSTALL_DIR" -ForegroundColor Cyan
     try { Write-Host "  Node.js:   $(node -v)" -ForegroundColor Cyan } catch {}
     try { Write-Host "  npm:       $(npm -v)" -ForegroundColor Cyan } catch {}
-    try { Write-Host "  npm 镜像:  $(npm config get registry)" -ForegroundColor Cyan } catch {}
+    Write-Host "  $(L '语言' 'Language'):     $script:UI_LANG" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "  下一步:" -ForegroundColor White
-    Write-Host "  1. 编辑配置: notepad $INSTALL_DIR\.env.local" -ForegroundColor Yellow
-    Write-Host "  2. 启动开发: cd $INSTALL_DIR; npm run dev" -ForegroundColor Yellow
-    Write-Host "  3. 生产构建: cd $INSTALL_DIR; npm run build; npm start" -ForegroundColor Yellow
+    Write-Host "  $(L '下一步' 'Next steps'):" -ForegroundColor White
+    Write-Host "  1. $(L '编辑配置' 'Edit config'): notepad $INSTALL_DIR\.env.local" -ForegroundColor Yellow
+    Write-Host "  2. $(L '启动开发' 'Start dev'):   cd $INSTALL_DIR; npm run dev" -ForegroundColor Yellow
+    Write-Host "  3. $(L '生产构建' 'Build prod'):  cd $INSTALL_DIR; npm run build; npm start" -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "  技能商店: 启动后访问 http://localhost:3000/skills" -ForegroundColor Cyan
-    Write-Host "  文档:     https://github.com/ligengxu/xiniu" -ForegroundColor Cyan
+    Write-Host "  $(L '技能商店' 'Skill Store'): http://localhost:3000/skills" -ForegroundColor Cyan
+    Write-Host "  $(L '文档' 'Docs'):     https://github.com/ligengxu/xiniu" -ForegroundColor Cyan
     Write-Host ""
 
-    if (Ask "是否现在启动开发服务器?") {
+    if (Ask (L "是否现在启动开发服务器?" "Start dev server now?")) {
         Set-Location $INSTALL_DIR
-        Write-Info "正在启动..."
+        Write-Info (L "正在启动..." "Starting...")
         npm run dev
     }
 }
 
 Write-Host ""
 Write-Host "================================================" -ForegroundColor Cyan
-Write-Host "  犀牛 Agent 一键安装脚本" -ForegroundColor Cyan
+Write-Host "  $(L '犀牛 Agent 一键安装脚本' 'Xiniu Agent Installer')" -ForegroundColor Cyan
 Write-Host "  https://github.com/ligengxu/xiniu" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host ""
 
 $sysInfo = "$([System.Runtime.InteropServices.RuntimeInformation]::OSDescription) | $([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture)"
-Write-Info "系统: $sysInfo  区域: $Region"
+Write-Info "$(L '系统' 'System'): $sysInfo  $(L '区域' 'Region'): $Region  $(L '语言' 'Lang'): $script:UI_LANG"
 
 Check-Git
 Check-Node

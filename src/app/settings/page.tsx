@@ -6,11 +6,14 @@ import Link from "next/link";
 import { ModelConfig } from "@/components/settings/model-config";
 import { ThemeSelector } from "@/components/settings/theme-selector";
 import { DialectSelector } from "@/components/settings/dialect-selector";
+import { LanguageSelector } from "@/components/settings/language-selector";
 import { useAppStore } from "@/lib/store";
 import { getThemeById, applyTheme } from "@/lib/themes";
+import { useI18n } from "@/lib/i18n";
 
 export default function SettingsPage() {
   const { settings } = useAppStore();
+  const { t } = useI18n();
 
   useEffect(() => {
     applyTheme(getThemeById(settings.theme || "space-black"));
@@ -37,22 +40,18 @@ export default function SettingsPage() {
             className="text-sm font-semibold"
             style={{ color: "var(--text-primary)" }}
           >
-            设置
+            {t.settings.title}
           </h1>
         </div>
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-8 space-y-8">
+        <LanguageSelector />
+        <div className="border-t" style={{ borderColor: "var(--border)" }} />
         <ThemeSelector />
-        <div
-          className="border-t"
-          style={{ borderColor: "var(--border)" }}
-        />
+        <div className="border-t" style={{ borderColor: "var(--border)" }} />
         <DialectSelector />
-        <div
-          className="border-t"
-          style={{ borderColor: "var(--border)" }}
-        />
+        <div className="border-t" style={{ borderColor: "var(--border)" }} />
         <ModelConfig />
       </main>
     </div>

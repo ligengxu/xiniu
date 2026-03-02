@@ -6,6 +6,7 @@ import type { UIMessage } from "ai";
 import { ToolInvocationCard } from "./tool-invocation";
 import { MarkdownRenderer } from "./markdown-renderer";
 import { useAppStore } from "@/lib/store";
+import { getLocale } from "@/lib/i18n/use-i18n";
 import {
   DIALECT_LIST,
   getDialectById,
@@ -42,7 +43,7 @@ function ThinkingBlock({ content }: { content: string }) {
         <ChevronRight
           className={`h-3 w-3 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
         />
-        <span className="font-medium">思考过程</span>
+        <span className="font-medium">{getLocale() === "en" ? "Thinking" : "思考过程"}</span>
         {!expanded && (
           <span className="truncate max-w-[200px]" style={{ color: "var(--text-muted)" }}>
             {content.slice(0, 50)}...
@@ -158,7 +159,7 @@ const SpeakButton = memo(function SpeakButton({ text }: { text: string }) {
             : "transparent",
           opacity: loading ? 0.6 : 1,
         }}
-        title={loading ? "生成语音中..." : speaking ? "停止朗读" : `${currentDialect.flag} ${currentDialect.name}朗读`}
+        title={loading ? (getLocale() === "en" ? "Generating audio..." : "生成语音中...") : speaking ? (getLocale() === "en" ? "Stop" : "停止朗读") : `${currentDialect.flag} ${currentDialect.name}`}
       >
         {loading ? (
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -177,7 +178,7 @@ const SpeakButton = memo(function SpeakButton({ text }: { text: string }) {
             ? "color-mix(in srgb, var(--accent) 10%, transparent)"
             : "transparent",
         }}
-        title="切换语言"
+        title={getLocale() === "en" ? "Switch Dialect" : "切换语言"}
       >
         <ChevronDown className={`h-2.5 w-2.5 transition-transform ${menuOpen ? "rotate-180" : ""}`} />
       </button>
@@ -206,7 +207,7 @@ const SpeakButton = memo(function SpeakButton({ text }: { text: string }) {
             className="px-2 py-1 text-[10px] font-medium"
             style={{ color: "var(--text-muted)" }}
           >
-            选择朗读语言
+            {getLocale() === "en" ? "Select Dialect" : "选择朗读语言"}
           </div>
           {DIALECT_LIST.map((d) => {
             const isActive = d.id === (dialectId || "mandarin");
@@ -243,7 +244,7 @@ const SpeakButton = memo(function SpeakButton({ text }: { text: string }) {
 });
 
 const UserTextBubble = memo(function UserTextBubble({ text }: { text: string }) {
-  const complexityMatch = text.match(/^\[代码质量:\s*(简单档|中等档|复杂档)\]\n?/);
+  const complexityMatch = text.match(/^\[(?:代码质量|Code Quality):\s*(简单档|中等档|复杂档|Simple|Standard|Professional)\]\n?/);
   const complexityLabel = complexityMatch ? complexityMatch[1] : null;
   const userText = complexityMatch ? text.slice(complexityMatch[0].length) : text;
   return (
