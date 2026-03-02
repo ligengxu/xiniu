@@ -115,8 +115,8 @@ export async function POST(req: Request) {
     const body = await req.json();
     const {
       messages: uiMessages,
-      providerId = "claudelocal",
-      modelId = "claude-sonnet-4-6",
+      providerId = "",
+      modelId = "",
       apiKey: clientApiKey,
       baseUrl: clientBaseUrl,
     } = body;

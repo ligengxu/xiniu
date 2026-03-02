@@ -103,8 +103,8 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       settings: {
-        providerId: "claudelocal",
-        modelId: "claude-sonnet-4-6",
+        providerId: "",
+        modelId: "",
         disabledSkills: [],
         theme: "space-black",
         dialectId: "mandarin",

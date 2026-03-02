@@ -149,8 +149,8 @@ export function getAllSkills(): SkillDefinition[] {
 }
 
 export async function getAllSkillsWithUser(
-  providerId = "claudelocal",
-  modelId = "claude-sonnet-4-6",
+  providerId = "",
+  modelId = "",
 ): Promise<SkillDefinition[]> {
   const community = await loadCommunitySkills();
   const userConfigs = await loadUserSkills();
@@ -228,7 +228,7 @@ export function getSkillsAsTools(): Record<string, Tool<any, any>> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function getSkillsAsToolsWithUser(providerId = "claudelocal", modelId = "claude-sonnet-4-6"): Promise<Record<string, Tool<any, any>>> {
+export async function getSkillsAsToolsWithUser(providerId = "", modelId = ""): Promise<Record<string, Tool<any, any>>> {
   const allSkills = await getAllSkillsWithUser(providerId, modelId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tools: Record<string, Tool<any, any>> = {};
@@ -292,8 +292,8 @@ export async function getAllSkillsMeta() {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getAllToolsMap(
-  providerId = "claudelocal",
-  modelId = "claude-sonnet-4-6",
+  providerId = "",
+  modelId = "",
 ): Promise<{ allTools: Record<string, Tool<any, any>>; allSkills: SkillDefinition[] }> {
   const allSkills = await getAllSkillsWithUser(providerId, modelId);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -338,8 +338,8 @@ export function buildInitialSystemPrompt(
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function getFilteredToolsAndPrompt(
-  providerId = "claudelocal",
-  modelId = "claude-sonnet-4-6",
+  providerId = "",
+  modelId = "",
   userMessages: string[] = [],
 ): Promise<{
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

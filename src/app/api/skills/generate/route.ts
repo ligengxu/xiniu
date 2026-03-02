@@ -67,7 +67,7 @@ ${toolListStr}
 
 export async function POST(req: Request) {
   try {
-    const { description, providerId = "claudelocal", modelId = "claude-sonnet-4-6", apiKey: clientApiKey, baseUrl: clientBaseUrl } = await req.json();
+    const { description, providerId = "", modelId = "", apiKey: clientApiKey, baseUrl: clientBaseUrl } = await req.json();
 
     if (!description || typeof description !== "string") {
       return NextResponse.json(

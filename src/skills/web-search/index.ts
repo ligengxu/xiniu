@@ -120,7 +120,9 @@ export const searchPlanSkill: SkillDefinition = {
     const { query } = params as { query: string };
 
     try {
-      const model = getModel("qwen", "qwen-turbo");
+      const searchProviderId = process.env.SEARCH_PROVIDER_ID || "qwen";
+      const searchModelId = process.env.SEARCH_MODEL_ID || "qwen-turbo";
+      const model = getModel(searchProviderId, searchModelId);
       const { text } = await generateText({
         model,
         prompt: `你是搜索规划助手。用户想搜索: "${query}"
