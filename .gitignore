@@ -35,12 +35,8 @@ yarn-error.log*
 # TypeScript
 *.tsbuildinfo
 
-# Community skills (按需安装，不提交到Git)
-src/skills/community/*/
-
-# 保留 manifest 和目录结构
-!src/skills/community/skills-manifest.json
-!src/skills/community/.gitkeep
+# Community skills: main分支排除，community-skills分支包含
+# (此分支包含所有社区技能源码供商店下载)
 
 # Local data
 data/
